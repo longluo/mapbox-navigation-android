@@ -43,7 +43,8 @@ class NavigationOptions private constructor(
     val isFromNavigationUi: Boolean,
     val isDebugLoggingEnabled: Boolean,
     val deviceProfile: DeviceProfile,
-    val eHorizonOptions: EHorizonOptions
+    val eHorizonOptions: EHorizonOptions,
+    val isRouteRefreshEnabled: Boolean
 ) {
 
     /**
@@ -60,6 +61,7 @@ class NavigationOptions private constructor(
         isDebugLoggingEnabled(isDebugLoggingEnabled)
         deviceProfile(deviceProfile)
         eHorizonOptions(eHorizonOptions)
+        isRouteRefreshEnabled(isRouteRefreshEnabled)
     }
 
     /**
@@ -82,6 +84,7 @@ class NavigationOptions private constructor(
         if (isDebugLoggingEnabled != other.isDebugLoggingEnabled) return false
         if (deviceProfile != other.deviceProfile) return false
         if (eHorizonOptions != other.eHorizonOptions) return false
+        if (isRouteRefreshEnabled != other.isRouteRefreshEnabled) return false
 
         return true
     }
@@ -101,6 +104,7 @@ class NavigationOptions private constructor(
         result = 31 * result + isDebugLoggingEnabled.hashCode()
         result = 31 * result + deviceProfile.hashCode()
         result = 31 * result + eHorizonOptions.hashCode()
+        result = 31 * result + isRouteRefreshEnabled.hashCode()
         return result
     }
 
@@ -120,6 +124,7 @@ class NavigationOptions private constructor(
             "isDebugLoggingEnabled=$isDebugLoggingEnabled, " +
             "deviceProfile=$deviceProfile, " +
             "eHorizonOptions=$eHorizonOptions" +
+            "isRouteRefreshEnabled=$isRouteRefreshEnabled" +
             ")"
     }
 
@@ -140,6 +145,7 @@ class NavigationOptions private constructor(
         private var isDebugLoggingEnabled: Boolean = false
         private var deviceProfile: DeviceProfile = DeviceProfile.Builder().build()
         private var eHorizonOptions: EHorizonOptions = EHorizonOptions.Builder().build()
+        private var isRouteRefreshEnabled: Boolean = true
 
         /**
          * Defines [Mapbox Access Token](https://docs.mapbox.com/help/glossary/access-token/)
@@ -202,6 +208,12 @@ class NavigationOptions private constructor(
             apply { this.eHorizonOptions = eHorizonOptions }
 
         /**
+         * Defines if route refresh is enabled
+         */
+        fun isRouteRefreshEnabled(flag: Boolean): Builder =
+            apply { this.isRouteRefreshEnabled = flag }
+
+        /**
          * Build a new instance of [NavigationOptions]
          * @return NavigationOptions
          */
@@ -218,7 +230,8 @@ class NavigationOptions private constructor(
                 isFromNavigationUi = isFromNavigationUi,
                 isDebugLoggingEnabled = isDebugLoggingEnabled,
                 deviceProfile = deviceProfile,
-                eHorizonOptions = eHorizonOptions
+                eHorizonOptions = eHorizonOptions,
+                isRouteRefreshEnabled = isRouteRefreshEnabled
             )
         }
     }

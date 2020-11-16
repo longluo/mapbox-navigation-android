@@ -232,7 +232,9 @@ class MapboxNavigation(
             logger
         )
         routeRefreshController = RouteRefreshController(directionsSession, tripSession, logger)
-        routeRefreshController.start()
+        if (navigationOptions.isRouteRefreshEnabled) {
+            routeRefreshController.start()
+        }
 
         defaultRerouteController = MapboxRerouteController(
             directionsSession,
@@ -703,14 +705,6 @@ class MapboxNavigation(
      */
     fun detachFasterRouteObserver() {
         fasterRouteController.stop()
-    }
-
-    /**
-     * API used to enable/disable route refresh.
-     * By default route refresh is enabled.
-     */
-    fun toggleRouteRefresh(isEnabled: Boolean) {
-        if (isEnabled) routeRefreshController.start() else routeRefreshController.stop()
     }
 
     /**
