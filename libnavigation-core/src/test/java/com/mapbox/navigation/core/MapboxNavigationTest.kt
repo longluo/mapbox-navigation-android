@@ -138,15 +138,7 @@ class MapboxNavigationTest {
 
         every { navigator.create(any(), any(), any()) } returns navigator
 
-        val navigationOptions = NavigationOptions
-            .Builder(applicationContext)
-            .accessToken(accessToken)
-            .distanceFormatter(distanceFormatter)
-            .navigatorPredictionMillis(1500L)
-            .onboardRouterOptions(onBoardRouterOptions)
-            .timeFormatType(NONE_SPECIFIED)
-            .locationEngine(locationEngine)
-            .build()
+        val navigationOptions = provideNavigationOptions().build()
 
         mapboxNavigation = MapboxNavigation(navigationOptions)
 
@@ -196,15 +188,7 @@ class MapboxNavigationTest {
     @Test
     fun init_registerOffRouteObserver_MapboxNavigation_recreated() {
         ThreadController.cancelAllUICoroutines()
-        val navigationOptions = NavigationOptions
-            .Builder(applicationContext)
-            .accessToken(accessToken)
-            .distanceFormatter(distanceFormatter)
-            .navigatorPredictionMillis(1500L)
-            .onboardRouterOptions(onBoardRouterOptions)
-            .timeFormatType(NONE_SPECIFIED)
-            .locationEngine(locationEngine)
-            .build()
+        val navigationOptions = provideNavigationOptions().build()
 
         mapboxNavigation = MapboxNavigation(navigationOptions)
 
@@ -216,15 +200,7 @@ class MapboxNavigationTest {
     @Test
     fun destroy_unregisterOffRouteObserver_MapboxNavigation_recreated() {
         ThreadController.cancelAllUICoroutines()
-        val navigationOptions = NavigationOptions
-            .Builder(applicationContext)
-            .accessToken(accessToken)
-            .distanceFormatter(distanceFormatter)
-            .navigatorPredictionMillis(1500L)
-            .onboardRouterOptions(onBoardRouterOptions)
-            .timeFormatType(NONE_SPECIFIED)
-            .locationEngine(locationEngine)
-            .build()
+        val navigationOptions = provideNavigationOptions().build()
         mapboxNavigation = MapboxNavigation(navigationOptions)
 
         mapboxNavigation.onDestroy()
@@ -611,4 +587,14 @@ class MapboxNavigationTest {
             .coordinates(emptyList())
             .geometries("")
             .requestUuid("")
+
+    private fun provideNavigationOptions() =
+        NavigationOptions
+            .Builder(applicationContext)
+            .accessToken(accessToken)
+            .distanceFormatter(distanceFormatter)
+            .navigatorPredictionMillis(1500L)
+            .onboardRouterOptions(onBoardRouterOptions)
+            .timeFormatType(NONE_SPECIFIED)
+            .locationEngine(locationEngine)
 }
