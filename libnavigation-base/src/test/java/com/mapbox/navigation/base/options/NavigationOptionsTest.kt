@@ -55,7 +55,7 @@ class NavigationOptionsTest : BuilderTest<NavigationOptions, NavigationOptions.B
             .onboardRouterOptions(mockk())
             .timeFormatType(1)
             .eHorizonOptions(mockk())
-            .isRouteRefreshEnabled(true)
+            .isRouteRefreshEnabled(false)
     }
 
     @Test
