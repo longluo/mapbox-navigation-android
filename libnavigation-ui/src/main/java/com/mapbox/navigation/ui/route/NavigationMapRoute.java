@@ -83,6 +83,8 @@ public class NavigationMapRoute implements LifecycleObserver {
   private float routeClickPadding;
   @Nullable
   private OnRouteSelectionChangeListener onRouteSelectionChangeListener;
+  @Nullable
+  private final Float sourceTolerance;
 
   /**
    * Construct an instance of {@link NavigationMapRoute}.
@@ -107,7 +109,8 @@ public class NavigationMapRoute implements LifecycleObserver {
       @Nullable MapRouteLineInitializedCallback routeLineInitializedCallback,
       @Nullable List<RouteStyleDescriptor> routeStyleDescriptors,
       long vanishingRouteLineUpdateIntervalNano,
-      float routeClickPadding) {
+      float routeClickPadding,
+      Float sourceTolerance) {
     this.routeStyleDescriptors = routeStyleDescriptors;
     this.vanishRouteLineEnabled = vanishRouteLineEnabled;
     this.vanishingRouteLineUpdateIntervalNano = vanishingRouteLineUpdateIntervalNano;
@@ -122,13 +125,17 @@ public class NavigationMapRoute implements LifecycleObserver {
             styleRes,
             belowLayer,
             routeStyleDescriptors,
-            routeLineInitializedCallback
+            routeLineInitializedCallback,
+            sourceTolerance
     );
-    this.routeArrow = new MapRouteArrow(mapView, mapboxMap, styleRes, LAYER_ABOVE_UPCOMING_MANEUVER_ARROW);
+    this.routeArrow = new MapRouteArrow(
+        mapView, mapboxMap, styleRes, LAYER_ABOVE_UPCOMING_MANEUVER_ARROW, sourceTolerance
+    );
     this.routeClickPadding = routeClickPadding;
     this.mapRouteProgressChangeListener = buildMapRouteProgressChangeListener();
     this.routeLineInitializedCallback = routeLineInitializedCallback;
     this.lifecycleOwner = lifecycleOwner;
+    this.sourceTolerance = sourceTolerance;
     initializeDidFinishLoadingStyleListener();
     registerLifecycleObserver();
   }
@@ -141,6 +148,7 @@ public class NavigationMapRoute implements LifecycleObserver {
       @Nullable String belowLayer,
       MapView.OnDidFinishLoadingStyleListener didFinishLoadingStyleListener,
       MapRouteProgressChangeListener progressChangeListener) {
+    this.sourceTolerance = null;
     this.navigation = navigation;
     this.mapView = mapView;
     this.mapboxMap = mapboxMap;
@@ -162,6 +170,7 @@ public class NavigationMapRoute implements LifecycleObserver {
       MapRouteProgressChangeListener progressChangeListener,
       MapRouteLine routeLine,
       MapRouteArrow routeArrow) {
+    this.sourceTolerance = null;
     this.navigation = navigation;
     this.mapView = mapView;
     this.mapboxMap = mapboxMap;
@@ -372,7 +381,8 @@ public class NavigationMapRoute implements LifecycleObserver {
   private MapRouteLine buildMapRouteLine(@NonNull final MapView mapView, @NonNull final MapboxMap mapboxMap,
                                          @StyleRes final int styleRes, @Nullable final String belowLayer,
                                          @Nullable final List<RouteStyleDescriptor> routeStyleDescriptors,
-                                         final MapRouteLineInitializedCallback routeLineInitializedCallback) {
+                                         final MapRouteLineInitializedCallback routeLineInitializedCallback,
+                                         @Nullable Float sourceTolerance) {
     final Context context = mapView.getContext();
     final List<RouteStyleDescriptor> routeStyleDescriptorsToUse = routeStyleDescriptors == null
             ? Collections.emptyList() : routeStyleDescriptors;
@@ -385,7 +395,8 @@ public class NavigationMapRoute implements LifecycleObserver {
         belowLayer,
         layerProvider,
         new MapRouteSourceProvider(),
-        routeLineInitializedCallback
+        routeLineInitializedCallback,
+        sourceTolerance
     );
   }
 
@@ -440,7 +451,7 @@ public class NavigationMapRoute implements LifecycleObserver {
   private void redraw(@NonNull Style style) {
     recreateRouteLine(style);
     boolean arrowVisibility = routeArrow.routeArrowIsVisible();
-    routeArrow = new MapRouteArrow(mapView, mapboxMap, styleRes, routeLine.getTopLayerId());
+    routeArrow = new MapRouteArrow(mapView, mapboxMap, styleRes, routeLine.getTopLayerId(), sourceTolerance);
     routeArrow.updateVisibilityTo(arrowVisibility);
     updateProgressChangeListener();
   }
@@ -464,7 +475,8 @@ public class NavigationMapRoute implements LifecycleObserver {
         routeLine.retrieveAlternativesVisible(),
         new MapRouteSourceProvider(),
         vanishingPointOffset,
-        routeLineInitializedCallback
+        routeLineInitializedCallback,
+        sourceTolerance
     );
   }
 
@@ -519,6 +531,8 @@ public class NavigationMapRoute implements LifecycleObserver {
     private float routeClickPadding = dpToPx(DEFAULT_ROUTE_CLICK_PADDING_IN_DIP);
     private long vanishingRouteLineUpdateIntervalNano =
         DEFAULT_VANISHING_POINT_MIN_UPDATE_INTERVAL_NANO;
+    @Nullable
+    private Float sourceTolerance;
 
     /**
      * Instantiates a new Builder.
@@ -640,6 +654,19 @@ public class NavigationMapRoute implements LifecycleObserver {
     }
 
     /**
+     * Douglas-Peucker simplification tolerance (higher means simpler geometries and faster performance)
+     * for the GeoJsonSources created to display the route line.
+     *
+     * @return the builder
+     * @see com.mapbox.mapboxsdk.style.sources.GeoJsonOptions#withTolerance(float)
+     */
+    @NonNull
+    public Builder withSourceTolerance(@Nullable Float sourceTolerance) {
+      this.sourceTolerance = sourceTolerance;
+      return this;
+    }
+
+    /**
      * Build an instance of {@link NavigationMapRoute}
      */
     @NonNull
@@ -655,7 +682,8 @@ public class NavigationMapRoute implements LifecycleObserver {
           routeLineInitializedCallback,
           routeStyleDescriptors,
           vanishingRouteLineUpdateIntervalNano,
-          routeClickPadding
+          routeClickPadding,
+          sourceTolerance
       );
     }
   }

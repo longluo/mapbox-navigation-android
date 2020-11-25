@@ -196,7 +196,8 @@ public class NavigationMapboxMap implements LifecycleObserver {
         vanishRouteLineEnabled,
         DEFAULT_VANISHING_POINT_MIN_UPDATE_INTERVAL_NANO,
         useSpecializedLocationLayer,
-            DEFAULT_ROUTE_CLICK_PADDING_IN_DIP
+        DEFAULT_ROUTE_CLICK_PADDING_IN_DIP,
+        null
     );
   }
 
@@ -207,7 +208,8 @@ public class NavigationMapboxMap implements LifecycleObserver {
       boolean vanishRouteLineEnabled,
       long vanishingRouteLineUpdateIntervalNano,
       boolean useSpecializedLocationLayer,
-      float routeClickPadding) {
+      float routeClickPadding,
+      @Nullable Float sourceTolerance) {
     this.mapView = mapView;
     this.mapboxMap = mapboxMap;
     this.vanishRouteLineEnabled = vanishRouteLineEnabled;
@@ -216,7 +218,7 @@ public class NavigationMapboxMap implements LifecycleObserver {
     initializeMapPaddingAdjustor(mapView, mapboxMap);
     initializeNavigationSymbolManager(mapView, mapboxMap);
     initializeMapLayerInteractor(mapboxMap);
-    initializeRoute(mapView, mapboxMap, routeBelowLayerId, vanishingRouteLineUpdateIntervalNano);
+    initializeRoute(mapView, mapboxMap, routeBelowLayerId, vanishingRouteLineUpdateIntervalNano, sourceTolerance);
     initializeCamera(mapboxMap);
     initializeLocationComponent(useSpecializedLocationLayer);
     registerLifecycleOwnerObserver();
@@ -1110,7 +1112,8 @@ public class NavigationMapboxMap implements LifecycleObserver {
   private void initializeRoute(
       @NonNull MapView mapView,
       @NonNull MapboxMap map, String routeBelowLayerId,
-      long vanishingRouteLineUpdateIntervalNano) {
+      long vanishingRouteLineUpdateIntervalNano,
+      @Nullable Float sourceTolerance) {
     Context context = mapView.getContext();
     int routeStyleRes = ThemeSwitcher.retrieveAttrResourceId(
         context, R.attr.navigationViewRouteStyle, R.style.MapboxStyleNavigationMapRoute
@@ -1121,6 +1124,7 @@ public class NavigationMapboxMap implements LifecycleObserver {
         .withRouteClickPadding(routeClickPadding)
         .withVanishRouteLineEnabled(vanishRouteLineEnabled)
         .withVanishingRouteLineUpdateIntervalNano(vanishingRouteLineUpdateIntervalNano)
+        .withSourceTolerance(sourceTolerance)
         .build();
   }
 
@@ -1280,6 +1284,8 @@ public class NavigationMapboxMap implements LifecycleObserver {
     private long vanishingRouteLineUpdateIntervalNano = DEFAULT_VANISHING_POINT_MIN_UPDATE_INTERVAL_NANO;
     private boolean useSpecializedLocationLayer = false;
     private float routeClickPadding = dpToPx(DEFAULT_ROUTE_CLICK_PADDING_IN_DIP);
+    @Nullable
+    private Float sourceTolerance;
 
     /**
      * {@link NavigationMapboxMap} builder. Can be used once {@link OnMapReadyCallback}
@@ -1355,6 +1361,19 @@ public class NavigationMapboxMap implements LifecycleObserver {
       return this;
     }
 
+    /**
+     * Douglas-Peucker simplification tolerance (higher means simpler geometries and faster performance)
+     * for the GeoJsonSources created to display the route line.
+     *
+     * @return the builder
+     * @see com.mapbox.mapboxsdk.style.sources.GeoJsonOptions#withTolerance(float)
+     */
+    @NonNull
+    public Builder withSourceTolerance(@Nullable Float sourceTolerance) {
+      this.sourceTolerance = sourceTolerance;
+      return this;
+    }
+
     public NavigationMapboxMap build() {
       return new NavigationMapboxMap(
           mapView,
@@ -1364,7 +1383,8 @@ public class NavigationMapboxMap implements LifecycleObserver {
           vanishRouteLineEnabled,
           vanishingRouteLineUpdateIntervalNano,
           useSpecializedLocationLayer,
-          routeClickPadding
+          routeClickPadding,
+          sourceTolerance
       );
     }
   }
